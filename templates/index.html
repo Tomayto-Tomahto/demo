@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">		
+		<title>Tomayto Tomahto</title>
+		<!--Import Google Icon Font-->
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<!--Import materialize.css-->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+		<!--Let browser know website is optimized for mobile-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	</head>
+	<body>
+	<div class="container">
+		<div class="row card-panel valign-wrapper">
+			<div class="col s6"><h1>{{ word }}</h1></div>
+			<div class="col s6">
+				<a class="btn-floating btn-large waves-effect waves-light red"
+				href = "{{url_for("skip")}}">
+				<i id='skip' class="material-icons">chevron_right</i></a></div>
+			<div class="col s12"><h5 id=result></h5></div>
+			<a href=# id="prediction" style="display:none;color:black;text-decoration:none">Predict</a>
+			<div class="col s12"><a class="btn-floating btn-large waves-effect waves-light red"><i id='record' class="material-icons">mic</i></a></div>
+			<div class="col s12"><audio id="audio" controls style="display:none"></audio></div>
+		</div>
+	</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script type=text/javascript>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+	<script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+	<script>
+		record = false;
+		$(function() {
+			$('a#prediction').bind('click', function() {
+			  $.getJSON($SCRIPT_ROOT + '/predict', {}, 
+			  function(data) {
+				$("#result").text(data.result);
+			  });
+			  return false;
+			});
+		  });
+		var recordButton, recorder, skipButton, playButton, audio, predictButton;
+
+		window.onload = function () {
+		  recordButton = document.getElementById('record');
+		  skipButton = document.getElementById('skip');
+		  predictButton = document.getElementById('prediction');
+		  audio = document.getElementById('audio');		  
+		  
+		  // get audio stream from user's mic
+		  navigator.mediaDevices.getUserMedia({
+			audio: true
+		  })
+		  .then(function (stream) {
+			recordButton.disabled = false;
+			skipButton.disabled = false;
+			recordButton.addEventListener('click', startRecording);
+			recorder = new MediaRecorder(stream, {'type': 'audio/mpeg;'});
+
+			// listen to dataavailable, which gets triggered whenever we have
+			// an audio blob available
+			recorder.addEventListener('dataavailable', onRecordingReady);
+		  });
+		};
+		
+		function startRecording() {
+			if(!record){
+			  record=true;
+			  recorder.start();
+			  recordButton.innerText = "mic_off"
+			}
+			else {
+			  record=false;
+			  recordButton.innerText = "mic"
+			  // Stopping the recorder will eventually trigger the `dataavailable` event and we can complete the recording process
+			  recorder.stop();
+			}
+		}
+
+
+		function onRecordingReady(e) {
+		  // e.data contains a blob representing the recording
+		  var url = URL.createObjectURL(e.data);
+		  audio.src = url;
+		  audio.style.display="block";
+		  var form = new FormData();
+		  form.append('recording', e.data);
+		  
+		  $.ajax({
+			  type: 'POST',
+			  url: '/predict',
+			  data: form,
+			  cache: false,
+			  processData: false,
+			  contentType: false
+			}).done(function(data) {
+						predictButton.click();
+						});
+			
+			
+		}
+		
+		function playRecording() {
+			audio.play();
+		}
+		
+	</script>
+	</body>
+</html>
