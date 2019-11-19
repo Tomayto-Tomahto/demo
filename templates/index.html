@@ -14,23 +14,26 @@
 	<body>
 	<div class="container">
 		<div class="row card-panel valign-wrapper">
-			<div class="col s6"><h1>{{ word }}</h1></div>
-			<div class="col s6">
-				<a class="btn-floating btn-large waves-effect waves-light red"
-				href = "{{url_for("skip")}}">
-				<i id='skip' class="material-icons">chevron_right</i></a></div>
-			<div class="col s12"><h5 id=result></h5></div>
+			<h1>{{ word }}</h1>
+				<a class="btn-floating waves-effect waves-light red tooltipped"
+				data-position="top" data-tooltip="skip" href = "{{url_for("skip")}}">
+				<i id='skip' class="material-icons">chevron_right</i></a>
 			<a href=# id="prediction" style="display:none;color:black;text-decoration:none">Predict</a>
-			<div class="col s12"><a class="btn-floating btn-large waves-effect waves-light red"><i id='record' class="material-icons">mic</i></a></div>
-			<div class="col s12"><audio id="audio" controls style="display:none"></audio></div>
+				<a id='mictooltip' class="btn-floating red tooltipped" data-position="right" data-tooltip="speak!">
+					<i id='record' class="material-icons">mic</i>
+				</a>
+			<audio id="audio" controls style="display:none"></audio>
+			<h5 id=result></h5>
 		</div>
 	</div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	<script type=text/javascript>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
 	<script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script>
+	
 		record = false;
+		$('.tooltipped').tooltip();
 		$(function() {
 			$('a#prediction').bind('click', function() {
 			  $.getJSON($SCRIPT_ROOT + '/predict', {}, 
@@ -40,13 +43,14 @@
 			  return false;
 			});
 		  });
-		var recordButton, recorder, skipButton, playButton, audio, predictButton;
+		var recordButton, recorder, skipButton, playButton, audio, predictButton, mictooltip;
 
 		window.onload = function () {
 		  recordButton = document.getElementById('record');
 		  skipButton = document.getElementById('skip');
 		  predictButton = document.getElementById('prediction');
 		  audio = document.getElementById('audio');		  
+		  mictooltip = document.getElementById('mictooltip');		  
 		  
 		  // get audio stream from user's mic
 		  navigator.mediaDevices.getUserMedia({
@@ -56,6 +60,7 @@
 			recordButton.disabled = false;
 			skipButton.disabled = false;
 			recordButton.addEventListener('click', startRecording);
+			
 			recorder = new MediaRecorder(stream, {'type': 'audio/mpeg;'});
 
 			// listen to dataavailable, which gets triggered whenever we have
@@ -68,11 +73,17 @@
 			if(!record){
 			  record=true;
 			  recorder.start();
-			  recordButton.innerText = "mic_off"
+			  recordButton.innerText = "mic_off";
+			  $('.tooltipped').tooltip('close');
+			  mictooltip.setAttribute("data-tooltip","stop!");
+			  mictooltip.setAttribute("data-position","bottom");
 			}
 			else {
 			  record=false;
-			  recordButton.innerText = "mic"
+			  recordButton.innerText = "mic";
+			  $('.tooltipped').tooltip('close');			  
+			  mictooltip.setAttribute("data-tooltip","speak!");
+			  mictooltip.setAttribute("data-position","right");			  
 			  // Stopping the recorder will eventually trigger the `dataavailable` event and we can complete the recording process
 			  recorder.stop();
 			}
@@ -104,7 +115,7 @@
 		function playRecording() {
 			audio.play();
 		}
-		
+
 	</script>
 	</body>
 </html>
