@@ -44,7 +44,7 @@ random.shuffle(list)
 class SVM:
 
 	prediction = "none"
-	def detectOnsets(self, y, sr):
+	def detectOnsets(self, y, sr, s=0.12, e=0.08):
 		x=0
 		times = []
 		o_env = librosa.onset.onset_strength(y, sr=sr, hop_length=64)
@@ -53,7 +53,7 @@ class SVM:
 		start = onset_frames[x]*64
 		
 		# remove noise		
-		while max(y[start:start+960])<0.12:
+		while max(y[start:start+960])<s:
 			x+=1
 			start = onset_frames[x]*64
 		
@@ -66,7 +66,7 @@ class SVM:
 		end = len(y)-onset_frames[x]*64
 
 		# remove noise
-		while max(y[end-1920:end])<0.08:
+		while max(y[end-1920:end])<e:
 			x+=1
 			end = len(y)-onset_frames[x]*64
 		
@@ -74,7 +74,7 @@ class SVM:
 		
 		return start,end,times
 		
-	def calculateFeatures(self):
+	def calculateFeatures(self, word):
 		y, sr = librosa.load('recording.mp3', mono=True)		
 		start,end,onset_times = self.detectOnsets(y,sr)
 		
@@ -87,7 +87,7 @@ class SVM:
 		
 		# generate unique plot id
 		self.pltid = str(uuid.uuid1())
-		plt.savefig('static\\plt'+self.pltid+'.png')
+		plt.savefig('static\\plots\\plt'+self.pltid+'.png')
 		y=y[start:end]
 		
 		# calculate features
@@ -106,14 +106,31 @@ class SVM:
 		for i in range(26):
 			dict[i] = features[i]
 		df = df.append(dict,ignore_index=True)
+		
+		# PLOT EXAMPLE
+		y, sr = librosa.load('static/en/'+word+'/en-US-Standard-D.mp3', mono=True)		
+		start,end,onset_times = self.detectOnsets(y,sr,0.0,0.0)
+		
+		# plot
+		plt.figure(figsize=(15, 5))
+		plt.title("Correct Pronunciation")
+		librosa.display.waveplot(y, sr, alpha=0.8)
+		plt.vlines(onset_times[0], 0, 1, color='r', alpha=0.9,linestyle='--', label='Start')
+		plt.vlines(onset_times[1], 0, 1, color='g', alpha=0.9,linestyle='--', label='End')
+		plt.legend()
+		
+		# generate unique plot id
+		self.pltid2 = str(uuid.uuid1())
+		plt.savefig('static\\plots\\plt'+self.pltid2+'.png')
+		
 		return df
 
     
 	def predict(self, word):
-		X_train=pd.read_csv('en/'+word+'/26features_v2.csv', sep=',')[0:-3]
+		X_train=pd.read_csv('static/en/'+word+'/26features_v2.csv', sep=',')[0:-3]
 		y_train = pd.Series(np.ones(7))
 
-		tr_df_train = pd.read_csv('tr/'+word+'/26features_v2.csv', sep=',')[0:-3]
+		tr_df_train = pd.read_csv('static/tr/'+word+'/26features_v2.csv', sep=',')[0:-3]
 		X_train = X_train.append(tr_df_train, ignore_index = True)
 
 		y_train = y_train.append(pd.Series(np.zeros(7)))
@@ -123,7 +140,7 @@ class SVM:
 		scaler = skl.preprocessing.StandardScaler(copy=False)
 		scaler.fit_transform(X_train)
 		
-		features = self.calculateFeatures()		
+		features = self.calculateFeatures(word)		
 		scaler.transform(features)		
 		model = skl.svm.SVC(kernel='rbf', C=1.2, probability=True).fit(X_train, y_train)
 		
@@ -141,7 +158,7 @@ def predict():
 	if request.method == 'POST' and request.files['recording'].filename:
 		request.files['recording'].save(os.path.join('./', 'recording.mp3'))
 		svm.predict(list[count])
-	return jsonify(result=str(svm.prediction), next=svm.pltid)
+	return jsonify(result=str(svm.prediction), next=svm.pltid, next2=svm.pltid2)
 	
 @app.route('/skip', methods = ['GET']) 
 def skip():
