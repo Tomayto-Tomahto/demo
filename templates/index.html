@@ -28,7 +28,7 @@
 					data-position="top" data-tooltip="skip" href = "{{url_for("skip")}}">
 					<i id='skip' class="material-icons">chevron_right</i></a>
 				<a href=# id="prediction" style="display:none;color:black;text-decoration:none"></a>
-				<a href=# id="alert" style="display:none;color:black;text-decoration:none"></a>
+				<a href=# id="alert" onclick="M.toast({html: 'Not even close!'})" style="display:none;color:black;text-decoration:none"></a>
 				<a id='mictooltip' class="btn-floating red tooltipped" data-position="right" data-tooltip="speak!">
 					<i id='record' class="material-icons">mic</i>
 				</a>
@@ -42,16 +42,26 @@
 							<h5 style="line-height:0%;font-weight:200;">native</h5>
 							<h5 style="line-height:0%;font-weight:200;">speaker</h5>
 						</div>
-						<div class="col 12"><audio id="audio" controls></audio><br><br></div>
 					</div>
 				</div>
-
+				<div class="col s5 offset-s1 card">
+					<h6 id="sr1" style="font-weight:200;"></h6>
+					<h6 id="sr2" style="font-weight:200;"></h6>
+					<h6 id="sr3" style="font-weight:200;"></h6>
+					
+				</div>
 				<div id='card2' class="col s12 card">
-<!--					<audio id="audio2" controls></audio> -->
+					<br><br><audio id="audio" controls></audio>
 					<div class='card-image'>
 						<img id=plot>
 					</div>
 				</div>
+				<div id='card3' class="col s12 card">
+					<br><br><audio id="audio2" controls></audio>
+					<div class='card-image'>
+						<img id=plot2>
+					</div>
+				</div>				
 
 			</div>
 		</div>
@@ -71,12 +81,13 @@
 			  console.log($("#alert").html())
 				if($("#alert").html()!=0){
 					$("#result").text(data.result);
-					$("#plot").attr('src','static/plt'+data.next+'.png');
 				}
 				else {
 					$("#result").text(0);
-					$("#plot").attr('src','static/plterror.png');
+					alertButton.click();
 				}
+				$("#plot").attr('src','static/plots/plt'+data.next+'.png');
+				$("#plot2").attr('src','static/plots/plt'+data.next2+'.png');
 			  });
 			  return false;
 			});
@@ -109,22 +120,29 @@
 			recognition.maxAlternatives = 4;
 			recognition.lang = "en-US";
 			recognition.onresult = function(e) {
-				console.log(e);
+				recognition.stop();
 				var speech = e.results[0][0].transcript.split(" ")
 				var confidence = e.results[0][0].confidence;
 				console.log(speech+" "+confidence);
-				console.log(e.results[0][1].transcript.split(" ")+" "+e.results[0][1].confidence);
-				console.log(e.results[0][2].transcript.split(" ")+" "+e.results[0][2].confidence);
+				document.getElementById('sr1').innerHTML= speech+" "+ confidence;
+				
+				var speech = e.results[0][1].transcript.split(" ")
+				var confidence = e.results[0][1].confidence;
+				console.log(speech+" "+confidence);
+				document.getElementById('sr2').innerHTML= speech+" "+ confidence;
+				
+				var speech = e.results[0][2].transcript.split(" ")
+				var confidence = e.results[0][2].confidence;
+				console.log(speech+" "+confidence);
+				document.getElementById('sr3').innerHTML= speech+" "+ confidence;
+				
 				var speechrecognition = false;
 				for(var i=0; i<3; i++){
-					if (document.getElementById('word').innerHTML==e.results[0][i].transcript.split(" ")){
+					if (document.getElementById('word').innerHTML==e.results[0][i].transcript.split(" "))
 						speechrecognition=true;
-					}
 				}
 				if(!speechrecognition) alertButton.innerHTML=0;
 				else alertButton.innerHTML=1;
-				console.log(speechrecognition)
-				recognition.stop();
 			};
 			
 			// listen to dataavailable, which gets triggered whenever we have
@@ -163,6 +181,7 @@
 		  // e.data contains a blob representing the recording
 		  var url = URL.createObjectURL(e.data);
 		  audio.src = url;
+		  audio2.src = 'static/en/'+document.getElementById('word').innerHTML+'/en-US-Standard-D.mp3';
 		  cards.style.display="block";
 		  var form = new FormData();
 		  form.append('recording', e.data);
@@ -176,10 +195,6 @@
 			  contentType: false
 			}).done(function(data) {predictButton.click();});
 					
-		}
-		
-		function playRecording() {
-			audio.play();
 		}
 
 	</script>
