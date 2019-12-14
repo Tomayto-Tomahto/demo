@@ -38,6 +38,8 @@ list = ['a', 'about', 'add', 'address', 'after', 'all', 'also', 'am', 'an',
 		'video', 'view', 'was', 'way', 'we', 'web', 'well', 'were', 'what', 'when', 'where',
 		'which', 'who', 'will', 'with', 'work', 'world', 'would', 'x', 'year', 'years', 'you', 'your']
 
+list = ['program','any','but','as','at', 'top', 'data', 'general', 'item', 'items','internet','been','after']
+		
 random.shuffle(list)
 
 
@@ -55,6 +57,10 @@ class SVM:
 		# remove noise		
 		while max(y[start:start+960])<s:
 			x+=1
+			if(len(onset_frames)==x): 
+				x=0
+				start = onset_frames[x]*64
+				break
 			start = onset_frames[x]*64
 		
 		times.append(onset_times[onset_frames][x])
@@ -66,8 +72,12 @@ class SVM:
 		end = len(y)-onset_frames[x]*64
 
 		# remove noise
-		while max(y[end-1920:end])<e:
+		while end>1920 and max(y[end-1920:end])<e:
 			x+=1
+			if(len(onset_frames)==x):
+				x=0
+				end = len(y)-onset_frames[x]*64
+				break			
 			end = len(y)-onset_frames[x]*64
 		
 		times.append(librosa.get_duration(y,sr)-onset_times[onset_frames][x])
