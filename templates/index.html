@@ -22,7 +22,7 @@
 	<body>
 	<div class="container">
 		<div class="row">
-			<div class="col s12 center-align valign-wrapper">
+			<div class="col s12 center-align valign-wrapper" id=wordandcontrols>
 				<h1 id=word>{{ word }}</h1>
 					<a class="btn-floating waves-effect waves-light red tooltipped"
 					data-position="top" data-tooltip="skip" href = "{{url_for("skip")}}">
@@ -45,9 +45,12 @@
 					</div>
 				</div>
 				<div class="col s5 offset-s1 card">
+					<h6 id="sr0" style="font-weight:200;"></h6>
 					<h6 id="sr1" style="font-weight:200;"></h6>
 					<h6 id="sr2" style="font-weight:200;"></h6>
 					<h6 id="sr3" style="font-weight:200;"></h6>
+					<h6 id="sr4" style="font-weight:200;"></h6>
+					<h6 id="sr5" style="font-weight:200;"></h6>
 					
 				</div>
 				<div id='card2' class="col s12 card">
@@ -66,34 +69,35 @@
 			</div>
 		</div>
 	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>	
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	<script type=text/javascript>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
 	<script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script>
-	
 		record = false;
 		$('.tooltipped').tooltip();
 		$(function() {
-			$('a#prediction').bind('click', function() {
+			$('a#prediction').bind('click', function(event) {
 			  $.getJSON($SCRIPT_ROOT + '/predict', {}, 
 			  function(data) {
-			  console.log($("#alert").html())
-				if($("#alert").html()!=0){
-					$("#result").text(data.result);
-				}
-				else {
+				if($("#alert").html()==0){
 					$("#result").text(0);
 					alertButton.click();
+				}
+				else {
+					$("#result").text(data.result);
 				}
 				$("#plot").attr('src','static/plots/plt'+data.next+'.png');
 				$("#plot2").attr('src','static/plots/plt'+data.next2+'.png');
 			  });
+			  document.getElementById('cards').style.display="block";
 			  return false;
 			});
 		  });		  
 		  
-		var recordButton, alertButton, recorder, skipButton, playButton, audio, predictButton, mictooltip, cards, audio2, recognition;
+		var recordButton, word, alertButton, recorder, skipButton, playButton, audio, predictButton, mictooltip, cards, audio2, recognition;
+		var recognizing = false;
 
 		window.onload = function () {
 		  recordButton = document.getElementById('record');
@@ -104,6 +108,7 @@
 		  audio2 = document.getElementById('audio2');		  
 		  mictooltip = document.getElementById('mictooltip');		  
 		  cards = document.getElementById('cards');
+		  word = document.getElementById('word').innerHTML;
 		  
 		  // get audio stream from user's mic
 		  navigator.mediaDevices.getUserMedia({
@@ -115,31 +120,48 @@
 			recordButton.addEventListener('click', startRecording);
 			
 			recognition = new webkitSpeechRecognition();
-			recognition.continuous = true;
+			recognition.continuous = false;
 			recognition.interimResults = false;
 			recognition.maxAlternatives = 4;
 			recognition.lang = "en-US";
-			recognition.onresult = function(e) {
+			
+			recognition.onstart = function() {
+				recognizing = true;
+			};	
+			
+			recognition.onspeechend = function() {
+				recognizing = false;
+				console.log("onspeechend");
 				recognition.stop();
-				var speech = e.results[0][0].transcript.split(" ")
-				var confidence = e.results[0][0].confidence;
-				console.log(speech+" "+confidence);
-				document.getElementById('sr1').innerHTML= speech+" "+ confidence;
-				
-				var speech = e.results[0][1].transcript.split(" ")
-				var confidence = e.results[0][1].confidence;
-				console.log(speech+" "+confidence);
-				document.getElementById('sr2').innerHTML= speech+" "+ confidence;
-				
-				var speech = e.results[0][2].transcript.split(" ")
-				var confidence = e.results[0][2].confidence;
-				console.log(speech+" "+confidence);
-				document.getElementById('sr3').innerHTML= speech+" "+ confidence;
-				
+				recorder.stop();
+			}
+			
+			recognition.onnomatch = function(event) {
+				recognizing = false;
+				console.log("nomatch");
+				recognition.stop();
+				recorder.stop();
+			}
+			
+			recognition.onerror = function(event) {
+				recognizing = false;
+				console.log('Error occurred in recognition: ' + event.error);
+				recognition.stop();
+				recorder.stop();
+			}
+			
+			recognition.onresult = function(e) {
+				mictooltip.setAttribute("class", "btn-floating red tooltipped");
+				recordButton.innerText = "mic";
+				mictooltip.setAttribute("data-tooltip","speak!");
+				// Stopping the recorder will eventually trigger the `dataavailable` event and we can complete the recording process
 				var speechrecognition = false;
-				for(var i=0; i<3; i++){
-					if (document.getElementById('word').innerHTML==e.results[0][i].transcript.split(" "))
-						speechrecognition=true;
+				console.log(e);
+				for(var i=0; i<e.results[0].length; i++){
+					var speech = e.results[0][i].transcript.split(" ")
+					var confidence = e.results[0][i].confidence;
+					document.getElementById('sr'+i).innerHTML= speech + " " + confidence;				
+					if (word==speech) speechrecognition=true;
 				}
 				if(!speechrecognition) alertButton.innerHTML=0;
 				else alertButton.innerHTML=1;
@@ -153,36 +175,38 @@
 		};
 		
 		function startRecording() {
-			if(!record){
-			  record=true;
+			if(!recognizing){
+			  alertButton.innerHTML=1;
 			  recorder.start();
 			  recognition.start();
 			  recordButton.innerText = "mic_off";
-			  $('.tooltipped').tooltip('close');
-			  mictooltip.setAttribute("data-tooltip","stop!");
-			  mictooltip.setAttribute("data-position","bottom");
-			  mictooltip.setAttribute("class", "btn-floating red tooltipped pulse");
+			  $("#mictooltip").attr("data-tooltip","stop!");
+			  $("#mictooltip").tooltip("close");
+			  $("#mictooltip").tooltip("open");
+			  $("#mictooltip").attr("class", "btn-floating red tooltipped pulse");
 			}
 			else {
-			  record=false;
+			  mictooltip.setAttribute("class", "btn-floating red tooltipped");
+			  console.log("record off");
 			  recordButton.innerText = "mic";
-			  $('.tooltipped').tooltip('close');			  
 			  mictooltip.setAttribute("data-tooltip","speak!");
 			  mictooltip.setAttribute("data-position","right");
-			  mictooltip.setAttribute("class", "btn-floating red tooltipped");
-			  // Stopping the recorder will eventually trigger the `dataavailable` event and we can complete the recording process
-			  recorder.stop();
 			  recognition.stop();
+			  recognizing = false;
+			  recognition.stop();
+			  recorder.stop();
 			}
 		}
 
 
 		function onRecordingReady(e) {
+		  mictooltip.setAttribute("class", "btn-floating red tooltipped");
+		  recordButton.innerText = "mic";
+		  mictooltip.setAttribute("data-tooltip","speak!");
 		  // e.data contains a blob representing the recording
 		  var url = URL.createObjectURL(e.data);
 		  audio.src = url;
-		  audio2.src = 'static/en/'+document.getElementById('word').innerHTML+'/en-US-Standard-D.mp3';
-		  cards.style.display="block";
+		  audio2.src = 'static/en/'+word+'/en-US-Standard-D.mp3';
 		  var form = new FormData();
 		  form.append('recording', e.data);
 		  
