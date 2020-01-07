@@ -14,8 +14,13 @@
 	<style>
 		html 
 		{
-			zoom:120%;
+			zoom:140%;
 		}
+		
+		body{background-color:#14161E;}
+		
+		.card{background-color:#1B1D27;}
+		
 		
 
 	</style>
@@ -23,48 +28,81 @@
 	<div class="container">
 		<div class="row">
 			<div class="col s12 center-align valign-wrapper" id=wordandcontrols>
-				<h1 id=word>{{ word }}</h1>
-					<a class="btn-floating waves-effect waves-light red tooltipped"
+				<h1 style="color:white;" id=word>{{ word }}</h1>
+				<a class="btn-floating waves-effect waves-light tooltipped" style="background-color:#1B1D27;"
 					data-position="top" data-tooltip="skip" href = "{{url_for("skip")}}">
 					<i id='skip' class="material-icons">chevron_right</i></a>
+				<a class="btn-floating waves-effect waves-light tooltipped" style="background-color:#1B1D27;" data-position="bottom" data-tooltip="listen" onclick="listen()">
+					<i class="material-icons">record_voice_over</i></a>				
 				<a href=# id="prediction" style="display:none;color:black;text-decoration:none"></a>
-				<a href=# id="alert" onclick="M.toast({html: 'Not even close!'})" style="display:none;color:black;text-decoration:none"></a>
-				<a id='mictooltip' class="btn-floating red tooltipped" data-position="right" data-tooltip="speak!">
+				<a href=# id="alert" onclick="M.toast({html: 'I couldn't tell. Can you try again?'})" style="display:none;color:black;text-decoration:none"></a>
+				<a id='mictooltip' class="btn-floating tooltipped" style="background-color:#1B1D27" data-position="right" data-tooltip="speak!">
 					<i id='record' class="material-icons">mic</i>
 				</a>
+				
 			</div>
 			<div id="cards" style="display:none">
-				<div id='card' class="col s5 card">
+				<div id='card' class="col s5">
 					<div class="card-content">
-						<div class="col s2"><h2 id=result style="line-height:0%;font-weight:bold;"></h2><br></div>
-						<div class="col s1"><h2 style="line-height:0%;font-weight:900;color:rgba(0,0,0,0.2);">%</h2></div>
+						<div class="col s2"><h1 id=result style="line-height:0%;font-weight:bold;color:white;"></h2><br><br></div>
+						<div class="col s2"><h1 style="line-height:0%;font-weight:900;color:rgba(255,255,255,0.1);">%</h2><br><br></div>
 						<div class="col s1">
-							<h5 style="line-height:0%;font-weight:200;">native</h5>
-							<h5 style="line-height:0%;font-weight:200;">speaker</h5>
+							<h4 style="line-height:0%;font-weight:200;color:white">native</h4>
+							<h4 style="line-height:0%;font-weight:200;color:white">speaker</h4>
+						</div>
+						
+					</div>				
+
+				</div>
+				<a  href=# id="audiobutton" class="col s2" onclick="aud_play_pause()" onmouseover="hoverlottie()" onmouseout="stoplottie()"></a>
+				<div class="col s5">
+					<br>
+					<span id="sr0" style="font-size:2rem"></span>
+					<span id="sr1"  style="font-size:2rem"></span>
+					<span id="sr2"  style="font-size:2rem"></span>
+					<span id="sr3"  style="font-size:2rem"></span>
+					<span id="sr4"  style="font-size:2rem"></span>
+					<span id="sr5"  style="font-size:2rem"></span>
+					<span id="sr6"  style="font-size:2rem"></span>
+					<span id="sr7"  style="font-size:2rem"></span>
+					<span id="sr8"  style="font-size:2rem"></span>
+					<span id="sr9"  style="font-size:2rem"></span>
+					<span id="sr10"  style="font-size:2rem"></span>
+					<span id="sr11" style="font-size:2rem"></span>
+					<span id="sr12"  style="font-size:2rem"></span>
+					<span id="sr13" style="font-size:2rem"></span>
+					<span id="sr14"  style="font-size:2rem"></span>
+					<span id="sr15"  style="font-size:2rem"></span>
+					<span id="sr16"  style="font-size:2rem"></span>
+					<span id="sr17"  style="font-size:2rem"></span>
+					<span id="sr18" style="font-size:2rem"></span>
+					<span id="sr19"  style="font-size:2rem"></span>				
+				</div>
+				
+				<br><br><audio id="audio" style="display:none" controls></audio>					
+
+
+				<ul class= "col s12 collapsible" style="border-color:transparent;">
+					<li>
+					<div class="collapsible-header" style="color:white;border-bottom-color:transparent;background-color:#1B1D27;">
+					<h6 style="font-weight:100;letter-spacing:10px;line-height:0px;">PLOTS</h6></div>
+					<div class="collapsible-body" style="border-bottom-color:transparent;">
+					<div class="row">
+							<div class='col s4'>
+								<img id=plot class="responsive-img">
+							<audio id="audio2" style="display:none" controls></audio>
+							</div>
+							<div class='col s4'>
+								<img id=plot2 class="responsive-img">
+							<audio id="audio3" style="display:none" controls></audio>
+							</div>
+							<div class='col s4'>
+								<img id=plot3 class="responsive-img">
+							</div>
 						</div>
 					</div>
-				</div>
-				<div class="col s5 offset-s1 card">
-					<h6 id="sr0" style="font-weight:200;"></h6>
-					<h6 id="sr1" style="font-weight:200;"></h6>
-					<h6 id="sr2" style="font-weight:200;"></h6>
-					<h6 id="sr3" style="font-weight:200;"></h6>
-					<h6 id="sr4" style="font-weight:200;"></h6>
-					<h6 id="sr5" style="font-weight:200;"></h6>
-					
-				</div>
-				<div id='card2' class="col s12 card">
-					<br><br><audio id="audio" controls></audio>
-					<div class='card-image'>
-						<img id=plot>
-					</div>
-				</div>
-				<div id='card3' class="col s12 card">
-					<br><br><audio id="audio2" controls></audio>
-					<div class='card-image'>
-						<img id=plot2>
-					</div>
-				</div>				
+					</li>
+				</ul>
 
 			</div>
 		</div>
@@ -74,29 +112,96 @@
 	<script type=text/javascript>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
 	<script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.4.1/lottie.js" type="text/javascript"></script>
 	<script>
+		var animation = bodymovin.loadAnimation({
+		  container: document.getElementById('audiobutton'), // Required
+		  path: 'https://maxst.icons8.com/vue-static/landings/animated-icons/icons/sound/sound.json', // Required
+		  renderer: 'svg', // Required
+		  loop: true, // Optional
+		  autoplay: false, // Optional
+		})
+		
+		function hoverlottie(){
+			animation.play();
+		}
+		function stoplottie(){
+			animation.stop();
+		}
+	
+	
+		function aud_play_pause() {
+		  var myAudio = document.getElementById("audio");
+		  if (myAudio.paused) {
+			myAudio.play();
+		  } else {
+			myAudio.pause();
+		  }
+		}
+		
+		function listen() {
+		  var myAudio = document.getElementById("audio2");
+		  if (myAudio.paused) {
+			myAudio.play();
+		  } else {
+			myAudio.pause();
+		  }
+		}
+	
+	  $(document).ready(function(){
+		$('.collapsible').collapsible();
+	  });
+	  
 		record = false;
 		$('.tooltipped').tooltip();
 		$(function() {
 			$('a#prediction').bind('click', function(event) {
 			  $.getJSON($SCRIPT_ROOT + '/predict', {}, 
 			  function(data) {
-				if($("#alert").html()==0){
-					$("#result").text(0);
+				//if($("#alert").html()==0){
+				//	$("#result").text(0);
+				//	alertButton.click();
+				//}
+				if(data.result>40 && data.result<60){
+					var soruisareti = "?";
+					$("#result").text(soruisareti);
 					alertButton.click();
 				}
-				else {
+				else{
 					$("#result").text(data.result);
+				}
+				
+				for(i=0; i<20; i++){				
+					$("#sr"+i).text('');
+					$("#sr"+i).css('color','#fff');						
+				}
+				
+				for(i=0; i<data.word.length; i++){
+					list = data.wordwrong.split(' ');
+					$("#sr"+i).text(data.word[i]);					
+					
+					if(list.includes(i.toString())){
+						if(list.includes(i.toString(), i+1)) {
+							$("#sr"+i).css('color','#f00');						
+						}
+						else {
+							$("#sr"+i).css('color','#ffa500');
+						}
+					}
+					else{
+						$("#sr"+i).css('color','#fff');
+					}
 				}
 				$("#plot").attr('src','static/plots/plt'+data.next+'.png');
 				$("#plot2").attr('src','static/plots/plt'+data.next2+'.png');
+				$("#plot3").attr('src','static/plots/plt'+data.next3+'.png');
 			  });
 			  document.getElementById('cards').style.display="block";
 			  return false;
 			});
 		  });		  
 		  
-		var recordButton, word, alertButton, recorder, skipButton, playButton, audio, predictButton, mictooltip, cards, audio2, recognition;
+		var recordButton, word, alertButton, recorder, skipButton, playButton, audio, predictButton, mictooltip, cards, audio2, audio3, recognition;
 		var recognizing = false;
 
 		window.onload = function () {
@@ -105,7 +210,8 @@
 		  alertButton = document.getElementById('alert');		  
 		  predictButton = document.getElementById('prediction');
 		  audio = document.getElementById('audio');		  
-		  audio2 = document.getElementById('audio2');		  
+		  audio2 = document.getElementById('audio2');
+			audio3 = document.getElementById('audio3');
 		  mictooltip = document.getElementById('mictooltip');		  
 		  cards = document.getElementById('cards');
 		  word = document.getElementById('word').innerHTML;
@@ -160,7 +266,7 @@
 				for(var i=0; i<e.results[0].length; i++){
 					var speech = e.results[0][i].transcript.split(" ")
 					var confidence = e.results[0][i].confidence;
-					document.getElementById('sr'+i).innerHTML= speech + " " + confidence;				
+					//document.getElementById('sr'+i).innerHTML= speech + " " + confidence;				
 					if (word==speech) speechrecognition=true;
 				}
 				if(!speechrecognition) alertButton.innerHTML=0;
@@ -180,13 +286,14 @@
 			  recorder.start();
 			  recognition.start();
 			  recordButton.innerText = "mic_off";
-			  $("#mictooltip").attr("data-tooltip","stop!");
-			  $("#mictooltip").tooltip("close");
-			  $("#mictooltip").tooltip("open");
+			  //$("#mictooltip").attr("data-tooltip","stop!");
+			  //$("#mictooltip").tooltip("close");
+			  //$("#mictooltip").tooltip("open");
 			  $("#mictooltip").attr("class", "btn-floating red tooltipped pulse");
 			}
 			else {
-			  mictooltip.setAttribute("class", "btn-floating red tooltipped");
+			  mictooltip.setAttribute("class", "btn-floating tooltipped");
+			  mictooltip.setAttribute("style", "background-color:#1B1D27");
 			  console.log("record off");
 			  recordButton.innerText = "mic";
 			  mictooltip.setAttribute("data-tooltip","speak!");
@@ -200,13 +307,14 @@
 
 
 		function onRecordingReady(e) {
-		  mictooltip.setAttribute("class", "btn-floating red tooltipped");
+		  mictooltip.setAttribute("style", "background-color:#1B1D27");
 		  recordButton.innerText = "mic";
 		  mictooltip.setAttribute("data-tooltip","speak!");
 		  // e.data contains a blob representing the recording
 		  var url = URL.createObjectURL(e.data);
 		  audio.src = url;
-		  audio2.src = 'static/en/'+word+'/en-US-Standard-D.mp3';
+		  audio2.src = 'static/data/en/'+word+'/en-US-Wavenet-D0.mp3';
+		  audio3.src = 'static/data/tr/'+word+'/tr-TR-Wavenet-D0.mp3';
 		  var form = new FormData();
 		  form.append('recording', e.data);
 		  
