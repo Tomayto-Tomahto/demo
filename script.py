@@ -15,11 +15,6 @@ count = 0
 s_list = "music a the x back email could center item national"
 list = s_list.split(" ")
 
-#list = ['program','any','but','as','at', 'top', 'data', 'general', 'item', 'items','internet','been','after']
-
-#random.shuffle(list)
-
-
 class SVM:
 
 	prediction = "none"
